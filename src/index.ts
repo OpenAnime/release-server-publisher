@@ -1,4 +1,4 @@
-import { openAsBlob } from 'node:fs';
+import { readSync, statSync, openSync, closeSync } from 'node:fs';
 
 import { basename } from 'pathe';
 import { ofetch } from 'ofetch';
@@ -14,6 +14,7 @@ export interface PublisherOpenAnimeConfig {
     username: string;
     password: string;
     channel?: ORSChannel;
+    chunkSizeInMb?: number;
 }
 
 export interface ORSAsset {
@@ -127,27 +128,50 @@ export default class PublisherOpenAnime extends PublisherBase<PublisherOpenAnime
                             }
                         }
 
-                        consola.info(`Attempting to upload asset: ${fileName}`);
+                        consola.info(`Uploading asset ${fileName} to server`);
 
-                        const formData = new FormData();
+                        const fileChunkSize = config.chunkSizeInMb * 1024 * 1024;
 
-                        formData.append('version', version);
-                        formData.append('platform', makeResult.platform);
+                        const fileSize = statSync(artifactPath).size;
+                        const totalChunks = Math.ceil(fileSize / fileChunkSize);
 
-                        formData.append('file', await openAsBlob(artifactPath), fileName);
+                        for (let i = 0; i < totalChunks; i++) {
+                            let buffer = Buffer.alloc(fileChunkSize);
+                            const fileDescriptor = openSync(artifactPath, 'r');
 
-                        try {
-                            await apiFetch(`/releases/${channel}/${version}/assets`, {
-                                method: 'POST',
-                                body: formData,
-                                headers: {
-                                    Authorization: jwt,
-                                },
-                            });
+                            try {
+                                const bytesRead = readSync(fileDescriptor, buffer, {
+                                    length: fileChunkSize,
+                                    position: i * fileChunkSize,
+                                });
 
-                            consola.success(`Asset ${fileName} uploaded to server`);
-                        } catch {
-                            consola.error(new Error(`Failed to upload asset ${fileName}`));
+                                if (bytesRead < fileChunkSize) {
+                                    buffer = buffer.subarray(0, bytesRead);
+                                }
+                            } finally {
+                                closeSync(fileDescriptor);
+                            }
+
+                            const formData = new FormData();
+
+                            formData.append('currentChunk', (i + 1).toString());
+                            formData.append('totalChunks', totalChunks.toString());
+                            formData.append('platform', makeResult.platform);
+                            formData.append('file', new Blob([buffer]), basename(artifactPath));
+
+                            try {
+                                await apiFetch(`/releases/${channel}/${version}/assets`, {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        Authorization: jwt,
+                                    },
+                                });
+
+                                consola.success(`Asset ${fileName} uploaded to server`);
+                            } catch {
+                                consola.error(new Error('Failed to upload asset to server'));
+                            }
                         }
 
                         uploaded++;
