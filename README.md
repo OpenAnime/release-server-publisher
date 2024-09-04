@@ -1,1 +1,1 @@
-# OpenAnime Release Server
+# OpenAnime Release Server Publisher
