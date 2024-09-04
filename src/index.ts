@@ -59,12 +59,22 @@ export default class PublisherOpenAnime extends PublisherBase<PublisherOpenAnime
                     (artifactPath) => basename(artifactPath).toLowerCase() !== 'releases',
                 );
 
+                let channel = 'stable';
+                if (config.channel) {
+                    channel = config.channel;
+                } else if (packageJSON.version.includes('rc')) {
+                    channel = 'rc';
+                } else if (packageJSON.version.includes('beta')) {
+                    channel = 'beta';
+                } else if (packageJSON.version.includes('alpha')) {
+                    channel = 'alpha';
+                }
+
                 const releases = await apiFetch<ORSRelease[]>('/releases');
 
                 const existingRelease = releases.find(
                     (release) =>
-                        release.version === packageJSON.version &&
-                        release.channel === config.channel,
+                        release.version === packageJSON.version && release.channel === channel,
                 );
 
                 if (!existingRelease) {
@@ -73,7 +83,7 @@ export default class PublisherOpenAnime extends PublisherBase<PublisherOpenAnime
                             method: 'POST',
                             body: {
                                 version: packageJSON.version,
-                                channel: config.channel,
+                                channel,
                                 changeLog: 'Electron Forge Release',
                             },
                             headers: {
@@ -126,16 +136,13 @@ export default class PublisherOpenAnime extends PublisherBase<PublisherOpenAnime
                         formData.append('file', await openAsBlob(artifactPath), fileName);
 
                         try {
-                            await apiFetch(
-                                `/releases/${config.channel}/${packageJSON.version}/assets`,
-                                {
-                                    method: 'POST',
-                                    body: formData,
-                                    headers: {
-                                        Authorization: jwt,
-                                    },
+                            await apiFetch(`/releases/${channel}/${packageJSON.version}/assets`, {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    Authorization: jwt,
                                 },
-                            );
+                            });
 
                             consola.success(`Asset ${fileName} uploaded to server`);
                         } catch {
