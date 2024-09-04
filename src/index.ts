@@ -135,6 +135,8 @@ export default class PublisherOpenAnime extends PublisherBase<PublisherOpenAnime
                         const fileSize = statSync(artifactPath).size;
                         const totalChunks = Math.ceil(fileSize / fileChunkSize);
 
+                        let success = true;
+
                         for (let i = 0; i < totalChunks; i++) {
                             let buffer = Buffer.alloc(fileChunkSize);
                             const fileDescriptor = openSync(artifactPath, 'r');
@@ -166,12 +168,20 @@ export default class PublisherOpenAnime extends PublisherBase<PublisherOpenAnime
                                     headers: {
                                         Authorization: jwt,
                                     },
+                                    retry: 3,
                                 });
-
-                                consola.success(`Asset ${fileName} uploaded to server`);
                             } catch {
-                                consola.error(new Error('Failed to upload asset to server'));
+                                success = false;
+                                break;
                             }
+                        }
+
+                        if (success) {
+                            consola.success(`Asset ${fileName} uploaded to server`);
+                        } else {
+                            consola.error(
+                                new Error(`Failed to upload asset ${fileName} to server`),
+                            );
                         }
 
                         uploaded++;
