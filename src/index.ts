@@ -130,7 +130,7 @@ export default class PublisherOpenAnime extends PublisherBase<PublisherOpenAnime
 
                         consola.info(`Uploading asset ${fileName} to server`);
 
-                        const fileChunkSize = config.chunkSizeInMb * 1024 * 1024;
+                        const fileChunkSize = (config.chunkSizeInMb ?? 10) * 1024 * 1024;
 
                         const fileSize = statSync(artifactPath).size;
                         const totalChunks = Math.ceil(fileSize / fileChunkSize);
