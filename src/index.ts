@@ -70,11 +70,12 @@ export default class PublisherOpenAnime extends PublisherBase<PublisherOpenAnime
                     channel = 'alpha';
                 }
 
+                const version = packageJSON.version.replace(/-(stable|beta|alpha|rc)/, '');
+
                 const releases = await apiFetch<ORSRelease[]>('/releases');
 
                 const existingRelease = releases.find(
-                    (release) =>
-                        release.version === packageJSON.version && release.channel === channel,
+                    (release) => release.version === version && release.channel === channel,
                 );
 
                 if (!existingRelease) {
@@ -82,7 +83,7 @@ export default class PublisherOpenAnime extends PublisherBase<PublisherOpenAnime
                         await apiFetch('/releases', {
                             method: 'POST',
                             body: {
-                                version: packageJSON.version,
+                                version,
                                 channel,
                                 changeLog: 'Electron Forge Release',
                             },
@@ -91,7 +92,7 @@ export default class PublisherOpenAnime extends PublisherBase<PublisherOpenAnime
                             },
                         });
 
-                        consola.success(`Release ${packageJSON.version} created on server`);
+                        consola.success(`Release ${version} created on server`);
                     } catch {
                         consola.error(new Error('Failed to create release on server'));
                     }
@@ -130,13 +131,13 @@ export default class PublisherOpenAnime extends PublisherBase<PublisherOpenAnime
 
                         const formData = new FormData();
 
-                        formData.append('version', packageJSON.version);
+                        formData.append('version', version);
                         formData.append('platform', makeResult.platform);
 
                         formData.append('file', await openAsBlob(artifactPath), fileName);
 
                         try {
-                            await apiFetch(`/releases/${channel}/${packageJSON.version}/assets`, {
+                            await apiFetch(`/releases/${channel}/${version}/assets`, {
                                 method: 'POST',
                                 body: formData,
                                 headers: {
