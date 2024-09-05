@@ -1,4 +1,4 @@
-## OpenAnime Release Server Publisher
+# OpenAnime Release Server Publisher
 
 `@openanime/release-server-publisher` publishes all your artifacts to a hosted instance of [OpenAnime Release Server](https://github.com/OpenAnime/release-server) where users will be able to download them.
 
@@ -17,3 +17,7 @@ module.exports = {
     ],
 };
 ```
+
+## License
+
+Distributed under the MIT License. See [license file](https://github.com/OpenAnime/licenses/blob/main/MIT.txt) for more information.
