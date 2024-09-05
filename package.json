@@ -1,7 +1,7 @@
 {
     "name": "@openanime/release-server-publisher",
     "version": "1.0.0",
-    "description": "",
+    "description": "OpenAnime release server publisher for Electron Forge",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
