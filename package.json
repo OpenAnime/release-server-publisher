@@ -1,6 +1,6 @@
 {
     "name": "@openanime/release-server-publisher",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "description": "OpenAnime release server publisher for Electron Forge",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -27,9 +27,10 @@
     "dependencies": {
         "@electron-forge/publisher-base": "^7.4.0",
         "@electron-forge/shared-types": "^7.4.0",
-        "consola": "^3.2.3",
-        "ofetch": "^1.3.4",
-        "pathe": "^1.1.2"
+        "axios": "^1.7.7",
+        "axios-retry": "^4.5.0",
+        "pino": "^9.4.0",
+        "pino-pretty": "^11.2.2"
     },
     "engines": {
         "node": ">= 20"
