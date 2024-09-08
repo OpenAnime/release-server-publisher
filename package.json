@@ -7,7 +7,6 @@
     "scripts": {
         "build": "tsup",
         "start": "node .",
-        "dev": "tsup --watch --onSuccess \"node .\"",
         "format": "prettier --write ."
     },
     "keywords": [],
